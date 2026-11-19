@@ -1,0 +1,8 @@
+campaign_id,name,channel,daily_budget,spend,conversions,revenue
+c_101,Search - Brand,google,150,980,61,6900
+c_102,Prospecting - Lookalike 2%,meta,220,1450,22,2310
+c_103,Retargeting - 30d visitors,meta,90,610,30,4150
+c_104,UGC creative test,tiktok,60,410,0,0
+c_105,Search - Generic,google,180,1220,28,3900
+c_106,Awareness - In-stream,youtube,120,760,6,1620
+c_107,Shopping - Best sellers,google,25,30,1,95

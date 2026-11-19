@@ -1,0 +1,51 @@
+# Cortex runtime configuration.
+# Secrets never go here: ANTHROPIC_API_KEY and friends come from the environment (.env).
+
+data_dir: ./var
+default_scope: personal          # scopes nest with '/': acme, acme/ads, acme/ads/eu
+
+llm:
+  provider: offline              # offline | anthropic  (override: CORTEX_LLM_PROVIDER)
+  model: claude-sonnet-5-5
+  max_tokens: 800
+
+memory:
+  recency_half_life_hours: 72
+  recall_weights: { relevance: 0.5, recency: 0.25, importance: 0.25 }
+  consolidation:
+    min_evidence: 2              # distinct episodes before an observation becomes a fact
+    min_confidence: 0.75         # ...or one observation at least this confident
+    pending_ttl_days: 7
+    decay_after_days: 14
+    decay_factor: 0.5
+
+policy:
+  dry_run: true                  # no external side effects until live adapters are registered
+  max_auto_risk: low             # actions above this risk wait for a human
+  max_budget_change_pct: 25
+  daily_auto_action_limit: 20    # per scope, rolling 24h
+  denied_kinds: [delete_campaign, delete_user]
+
+queue:
+  backend: memory                # memory | redis  (override URL: CORTEX_REDIS_URL)
+  redis_url: redis://localhost:6379/0
+  name: cortex:tasks
+
+schedules:
+  - agent: ads_optimizer
+    every: 6h
+    inputs: { source: examples/data/campaigns.csv }
+  - agent: security_monitor
+    every: 15m
+    inputs: { source: examples/data/auth_events.jsonl }
+
+agents:
+  ads_optimizer:
+    target_cpa: 40
+    target_roas: 3.0
+    scale_up_pct: 20
+    scale_down_pct: 25
+    budget_cooldown_hours: 48
+  security_monitor:
+    failed_login_threshold: 5
+    window_minutes: 10

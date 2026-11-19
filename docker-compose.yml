@@ -1,0 +1,46 @@
+services:
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      CORTEX_REDIS_URL: redis://redis:6379/0
+      CORTEX_QUEUE_BACKEND: redis
+    command: ["cortex", "serve", "--host", "0.0.0.0", "--port", "8000"]
+    ports: ["8000:8000"]
+    volumes: [cortex-data:/data]
+    depends_on:
+      redis: { condition: service_healthy }
+
+  worker:
+    build: .
+    env_file: .env
+    environment:
+      CORTEX_REDIS_URL: redis://redis:6379/0
+      CORTEX_QUEUE_BACKEND: redis
+    command: ["cortex", "worker"]
+    volumes: [cortex-data:/data]
+    depends_on:
+      redis: { condition: service_healthy }
+    deploy:
+      replicas: 1   # exactly one scheduler; see docs/deployment.md
+
+  dashboard:
+    build: .
+    environment:
+      CORTEX_API_URL: http://api:8000
+    command: ["streamlit", "run", "dashboard/app.py", "--server.address=0.0.0.0"]
+    ports: ["8501:8501"]
+    depends_on: [api]
+
+volumes:
+  cortex-data:
+  redis-data:
