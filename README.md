@@ -4,9 +4,10 @@
 
 Cortex gives long-running agents three things most agent frameworks leave to you:
 a memory that learns what is true over time, guardrails that decide which actions
-run without a human, and an always-on runtime with a full audit trail. Agents for
-ad optimization, security monitoring, CRM, research and creative work plug into the
-same loop and share the same memory.
+run without a human, and an always-on runtime with a full audit trail. It ships with
+ad-optimization, security-monitoring and research agents; CRM, creative generation and
+long-horizon workflow agents are designed to plug into the same loop and share the
+same memory.
 
 It is infrastructure, not a chat interface. The unit of work is a *cycle*, not a
 conversation: sense, decide, govern, act, remember, report. It repeats on a schedule
@@ -94,7 +95,9 @@ Version 0.1. Early, working, and honest about it.
 - Policy engine (risk ceiling, budget-change cap, daily auto-action limit, deny list).
 - Executor with dry-run mode, audit log and memory write-back.
 - Three reference agents: `ads_optimizer`, `security_monitor`, `research`.
-- Control-plane API, CLI, scheduler + worker, in-memory and Redis queues.
+- Control-plane API, CLI, scheduler + worker (retries, acks), in-memory and Redis queues.
+- Docker compose stack (API, worker on Redis, dashboard) run locally end to end:
+  scheduled cycles, queued tasks, and approvals made from the dashboard.
 - End-to-end example: two simulated days of ads review with a human approval in between.
 
 **Not built yet**: see [Current limitations](#current-limitations) and the roadmap.
@@ -167,6 +170,7 @@ Everything in Docker (API, worker on Redis, dashboard):
 ```bash
 cp .env.example .env
 docker compose up --build
+# API: http://127.0.0.1:8000/docs   Dashboard: http://127.0.0.1:8501
 ```
 
 To have Claude write briefings and research instead of the offline provider, set
@@ -186,7 +190,10 @@ To have Claude write briefings and research instead of the offline provider, set
   block the event loop under heavy load.
 - **Scheduler state is in-process.** A restart fires every schedule once. Two scheduler
   processes would double-schedule; run one.
-- **No auth on the API.** Bind it to localhost or put it behind your own auth proxy.
+- **No auth on the API.** Compose binds it to 127.0.0.1; put your own auth proxy in front
+  before exposing it.
+- **`POST /tasks` needs the Redis backend.** With the in-memory queue the API refuses it
+  (503) because no worker shares its process; use `POST /runs` instead.
 - **Example agents use rules on exported data**, not live APIs. They show the contract
   and the memory interplay; they are not tuned strategies.
 - **Not yet battle-tested** on long real-world deployments.

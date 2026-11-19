@@ -15,7 +15,7 @@ services:
       CORTEX_REDIS_URL: redis://redis:6379/0
       CORTEX_QUEUE_BACKEND: redis
     command: ["cortex", "serve", "--host", "0.0.0.0", "--port", "8000"]
-    ports: ["8000:8000"]
+    ports: ["127.0.0.1:8000:8000"]   # no API auth yet: never expose publicly
     volumes: [cortex-data:/data]
     depends_on:
       redis: { condition: service_healthy }
@@ -38,7 +38,7 @@ services:
     environment:
       CORTEX_API_URL: http://api:8000
     command: ["streamlit", "run", "dashboard/app.py", "--server.address=0.0.0.0"]
-    ports: ["8501:8501"]
+    ports: ["127.0.0.1:8501:8501"]
     depends_on: [api]
 
 volumes:

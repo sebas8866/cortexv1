@@ -110,3 +110,5 @@ def test_api_round_trip(settings: Settings, campaigns_csv: str) -> None:
             "/memory/search", params={"q": "rejected pause", "scope": "acme/ads"}
         ).json()
         assert client.post("/runs", json={"agent": "nope"}).status_code == 404
+        # memory backend: the API has no worker, so queued tasks would never run
+        assert client.post("/tasks", json={"agent": "research"}).status_code == 503

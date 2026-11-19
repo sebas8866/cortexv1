@@ -84,6 +84,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/tasks", status_code=202)
     async def enqueue(req: RunRequest) -> dict[str, str]:
+        if settings.queue.backend == "memory":
+            # An in-memory queue lives in this process, which runs no worker: the task would
+            # sit there forever. Refuse rather than accept work that will never run.
+            raise HTTPException(
+                503, "queue.backend is 'memory': use POST /runs, or run workers on Redis"
+            )
         task = Task(req.agent, req.scope or settings.default_scope, req.inputs)
         await app.state.queue.enqueue(task)
         return {"task_id": task.id}
