@@ -121,8 +121,8 @@ Version 0.1. Early, working, and honest about it.
 Requirements: Python 3.11+. Docker is optional.
 
 ```bash
-git clone https://github.com/<you>/cortex.git
-cd cortex
+git clone https://github.com/sebas8866/cortexv1.git
+cd cortexv1
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
